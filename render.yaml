@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: cougarhacks-app
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: NEON_AUTH_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        value: https://cougarhacksportal.onrender.com
+      - key: BACKEND_URL
+        value: https://cougarhacksportal.onrender.com
+      - key: VITE_BACKEND_URL
+        value: https://cougarhackportal.onrender.com
+      - key: VITE_NEON_AUTH_URL
+        sync: false
