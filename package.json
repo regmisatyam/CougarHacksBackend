@@ -4,13 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "postinstall": "npm run install:all",
     "install:client": "cd client && npm install",
     "install:server": "cd server && npm install",
     "install:all": "npm run install:client && npm run install:server",
     "build:client": "cd client && npm run build",
+    "build": "npm run build:client",
     "migrate": "cd server && npm run migrate",
     "start": "cd server && npm start",
-    "build": "npm run install:all && npm run build:client",
     "dev:client": "cd client && npm run dev",
     "dev:server": "cd server && npm run dev"
   },
