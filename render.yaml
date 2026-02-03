@@ -15,15 +15,15 @@ services:
         sync: false
       - key: SESSION_SECRET
         generateValue: true
-      - key: GOOGLE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_CLIENT_SECRET
-        sync: false
       - key: GITHUB_CLIENT_ID
         sync: false
       - key: GITHUB_CLIENT_SECRET
         sync: false
       - key: FRONTEND_URL
-        value: https://cougarhacks-app.onrender.com
+        value: https://cougarhacksportal.onrender.com
       - key: BACKEND_URL
-        value: https://cougarhacks-app.onrender.com
+        value: https://cougarhacksportal.onrender.com
+      - key: VITE_BACKEND_URL
+        value: https://cougarhackportal.onrender.com
+      - key: VITE_NEON_AUTH_URL
+        sync: false
