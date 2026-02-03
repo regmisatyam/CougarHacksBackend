@@ -337,7 +337,7 @@ authRouter.get('/me', requireAuth, async (req, res, next) => {
   try {
     const rows = await sql`
       SELECT u.id, u.email, u.role, u.status, u.blocked_reason,
-             p.first_name, p.last_name, p.phone, p.date_of_birth, p.gender,
+             p.first_name, p.last_name, p.phone, p.dob, p.gender,
              p.university, p.major, p.graduation_year, p.country, p.city,
              p.dietary_restrictions, p.github_url, p.linkedin_url, p.portfolio_url,
              p.active_hackathon_id
@@ -351,7 +351,7 @@ authRouter.get('/me', requireAuth, async (req, res, next) => {
       user?.first_name &&
       user?.last_name &&
       user?.phone &&
-      user?.date_of_birth &&
+      user?.dob &&
       user?.gender &&
       user?.university &&
       user?.major &&

@@ -26,7 +26,7 @@ profileRouter.post('/me', requireAuth, async (req, res, next) => {
 
     const rows = await sql`
       INSERT INTO user_profiles (
-        user_id, first_name, last_name, phone, date_of_birth, gender, university, major,
+        user_id, first_name, last_name, phone, dob, gender, university, major,
         graduation_year, country, city, dietary_restrictions, github_url, linkedin_url, portfolio_url, active_hackathon_id
       ) VALUES (
         ${req.user.id}, ${firstName}, ${lastName}, ${phone}, ${dob}, ${gender}, ${university}, ${major},
@@ -36,7 +36,7 @@ profileRouter.post('/me', requireAuth, async (req, res, next) => {
         first_name = EXCLUDED.first_name,
         last_name = EXCLUDED.last_name,
         phone = EXCLUDED.phone,
-        date_of_birth = EXCLUDED.date_of_birth,
+        dob = EXCLUDED.dob,
         gender = EXCLUDED.gender,
         university = EXCLUDED.university,
         major = EXCLUDED.major,

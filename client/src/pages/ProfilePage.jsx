@@ -38,7 +38,7 @@ export default function ProfilePage() {
         firstName: u.first_name || '',
         lastName: u.last_name || '',
         phone: u.phone || '',
-        dob: u.date_of_birth ? u.date_of_birth.split('T')[0] : '',
+        dob: u.dob ? u.dob.split('T')[0] : '',
         gender: u.gender || '',
         university: u.university || '',
         major: u.major || '',
