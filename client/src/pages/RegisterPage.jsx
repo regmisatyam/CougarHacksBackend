@@ -182,9 +182,9 @@ export default function RegisterPage() {
           </form>
         )}
         
-        <div className="right-side">
+        {/* <div className="right-side">
           <Spline scene="https://prod.spline.design/6elw4OLN7yEqIw9t/scene.splinecode" />
-        </div>
+        </div> */}
       </div>
       
       {message && <p className="success">{message}</p>}

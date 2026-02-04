@@ -49,7 +49,8 @@ export default function LoginPage() {
   };
 
   return (
-    <section className="card">
+    <section className="display-flex">
+      <div className=" login-card">
       <h2>Login</h2>
       
       <div className="form-container">
@@ -97,12 +98,13 @@ export default function LoginPage() {
           </div>
         </form>
         
-        <div className="right-side splineFixed">
+        {/* <div className="right-side splineFixed">
           <Spline scene="https://prod.spline.design/6elw4OLN7yEqIw9t/scene.splinecode" />
-        </div>
+        </div> */}
       </div>
       
       {error && <p className="error">{error}</p>}
+      </div>
     </section>
   );
 }

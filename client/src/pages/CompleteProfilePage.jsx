@@ -212,7 +212,7 @@ export default function CompleteProfilePage() {
               </label>
               <input 
                 type="text"
-                placeholder="University of Houston" 
+                placeholder="Caldwell University" 
                 value={form.university} 
                 onChange={(e) => setForm({ ...form, university: e.target.value })} 
                 required 
@@ -265,25 +265,25 @@ export default function CompleteProfilePage() {
               />
               
               <label style={{ display: 'block', marginBottom: '0.5rem', marginTop: '1rem', fontWeight: '500' }}>
-                LinkedIn URL <span style={{ color: 'var(--color-error)' }}>*</span>
+                LinkedIn URL 
               </label>
               <input 
                 type="url"
                 placeholder="https://linkedin.com/in/username" 
                 value={form.linkedinUrl} 
                 onChange={(e) => setForm({ ...form, linkedinUrl: e.target.value })} 
-                required 
+                 
               />
               
               <label>
-                Portfolio URL <span className="required">*</span>
+                Portfolio URL 
               </label>
               <input 
                 type="url"
                 placeholder="https://yourportfolio.com" 
                 value={form.portfolioUrl} 
                 onChange={(e) => setForm({ ...form, portfolioUrl: e.target.value })} 
-                required 
+                 
               />
             </div>
           </div>

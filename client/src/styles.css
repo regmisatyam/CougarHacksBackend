@@ -170,6 +170,12 @@ a:hover {
   padding: var(--spacing-md);
   padding-top: 100px; /* Space for fixed navbar */
 }
+.display-flex{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
 
 /* Navigation - Modern Glassmorphism Design */
 .navbar {
@@ -360,15 +366,32 @@ a:hover {
 
 /* Cards */
 .card {
-  background: rgba(30, 41, 59, 0.3); /* Transparent with slight tint */
-  backdrop-filter: blur(5px); /* Glass morphism effect */
-  -webkit-backdrop-filter: blur(5px); /* Safari support */
+  background: rgba(30, 41, 59, 0.1); /* Transparent with slight tint */
+  backdrop-filter: blur(1px); /* Glass morphism effect */
+  -webkit-backdrop-filter: blur(1px); /* Safari support */
   border: 1px solid rgba(148, 163, 184, 0.2);
   border-radius: var(--radius-lg);
   padding: var(--spacing-xl);
   margin: var(--spacing-lg) 0;
   box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   transition: all 0.3s ease;
+}
+.login-card {
+  background: rgba(30, 41, 59, 0.1); /* Transparent with slight tint */
+  backdrop-filter: blur(1px); /* Glass morphism effect */
+  -webkit-backdrop-filter: blur(1px); /* Safari support */
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  margin: var(--spacing-lg) 0;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 600px;
 }
 
 .card:hover {
@@ -818,9 +841,8 @@ p:contains("Loading") {
 }
 /* Login/Register Form Container */
 .form-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  display: flex;
+  justify-content: center;
   align-items: center;
   width: 100%;
   margin-bottom: 1.5rem;
