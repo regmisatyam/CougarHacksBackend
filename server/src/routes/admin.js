@@ -87,6 +87,21 @@ adminRouter.post('/users/block', async (req, res, next) => {
     const { userId, reason } = req.body || {};
     if (!userId || !reason) return res.status(400).json({ error: 'userId and reason are required' });
 
+    // Check if user is an organizer
+    const userCheck = await sql`
+      SELECT id, email, role
+      FROM users
+      WHERE id = ${userId}
+    `;
+    
+    if (userCheck.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (userCheck[0].role === 'organizer') {
+      return res.status(403).json({ error: 'Cannot block organizers' });
+    }
+
     const rows = await sql`
       UPDATE users
       SET status = 'blocked',

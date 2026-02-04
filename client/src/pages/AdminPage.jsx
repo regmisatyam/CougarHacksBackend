@@ -6,8 +6,10 @@ export default function AdminPage() {
   const [hackathonId, setHackathonId] = useState('');
   const [registrations, setRegistrations] = useState([]);
   const [regStatusFilter, setRegStatusFilter] = useState('all');
+  const [regSearchTerm, setRegSearchTerm] = useState('');
   const [users, setUsers] = useState([]);
   const [userStatusFilter, setUserStatusFilter] = useState('active');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   const [error, setError] = useState('');
 
   const load = async () => {
@@ -63,9 +65,19 @@ export default function AdminPage() {
       });
       await load();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || 'Failed to block user');
     }
   };
+
+  // Filter registrations based on search term
+  const filteredRegistrations = registrations.filter((r) =>
+    r.email.toLowerCase().includes(regSearchTerm.toLowerCase())
+  );
+
+  // Filter users based on search term
+  const filteredUsers = users.filter((u) =>
+    u.email.toLowerCase().includes(userSearchTerm.toLowerCase())
+  );
 
   const unblock = async (userId) => {
     try {
@@ -127,6 +139,15 @@ export default function AdminPage() {
       borderRadius: '0.375rem',
       color: '#fff',
       minWidth: '150px',
+    },
+    input: {
+      padding: '0.4rem 0.6rem',
+      fontSize: '0.85rem',
+      background: 'rgba(30, 41, 59, 0.5)',
+      border: '1px solid rgba(148, 163, 184, 0.3)',
+      borderRadius: '0.375rem',
+      color: '#fff',
+      minWidth: '200px',
     },
     button: {
       padding: '0.35rem 0.7rem',
@@ -226,7 +247,22 @@ export default function AdminPage() {
             </select>
           </div>
 
+          <div style={adminStyles.filterGroup}>
+            <label style={adminStyles.label}>Search Email</label>
+            <input
+              type="text"
+              style={adminStyles.input}
+              placeholder="Search by email..."
+              value={regSearchTerm}
+              onChange={(e) => setRegSearchTerm(e.target.value)}
+            />
+          </div>
+
           <button style={{...adminStyles.buttonSecondary, marginTop: '1.2rem'}} onClick={load}>Refresh</button>
+        </div>
+
+        <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
+          Showing {filteredRegistrations.length} of {registrations.length} registrations
         </div>
 
         <table style={adminStyles.table}>
@@ -238,14 +274,14 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {registrations.length === 0 ? (
+            {filteredRegistrations.length === 0 ? (
               <tr>
                 <td colSpan="3" style={{...adminStyles.cell, textAlign: 'center', color: '#94a3b8'}}>
-                  No registrations found
+                  {registrations.length === 0 ? 'No registrations found' : 'No matching registrations'}
                 </td>
               </tr>
             ) : (
-              registrations.map((r) => {
+              filteredRegistrations.map((r) => {
                 const statusStyle = getStatusColor(r.status);
                 return (
                   <tr key={r.id} style={adminStyles.row}>
@@ -295,6 +331,21 @@ export default function AdminPage() {
               <option value="blocked">Blocked Users</option>
             </select>
           </div>
+
+          <div style={adminStyles.filterGroup}>
+            <label style={adminStyles.label}>Search Email</label>
+            <input
+              type="text"
+              style={adminStyles.input}
+              placeholder="Search by email..."
+              value={userSearchTerm}
+              onChange={(e) => setUserSearchTerm(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
+          Showing {filteredUsers.length} of {users.length} users
         </div>
 
         <table style={adminStyles.table}>
@@ -307,14 +358,14 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 ? (
+            {filteredUsers.length === 0 ? (
               <tr>
                 <td colSpan="4" style={{...adminStyles.cell, textAlign: 'center', color: '#94a3b8'}}>
-                  No users found
+                  {users.length === 0 ? 'No users found' : 'No matching users'}
                 </td>
               </tr>
             ) : (
-              users.map((u) => {
+              filteredUsers.map((u) => {
                 const statusStyle = getStatusColor(u.status);
                 return (
                   <tr key={u.id} style={adminStyles.row}>
@@ -328,7 +379,9 @@ export default function AdminPage() {
                       </span>
                     </td>
                     <td style={{...adminStyles.cell, textAlign: 'right'}}>
-                      {u.status === 'active' ? (
+                      {u.role === 'organizer' ? (
+                        <span style={{fontSize: '0.75rem', color: '#94a3b8'}}>Protected</span>
+                      ) : u.status === 'active' ? (
                         <button style={adminStyles.button} onClick={() => block(u.id)}>Block User</button>
                       ) : (
                         <button style={{...adminStyles.button, background: '#10b981'}} onClick={() => unblock(u.id)}>Unblock User</button>
