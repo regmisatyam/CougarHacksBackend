@@ -20,6 +20,8 @@ export default function TeamPage() {
   const [selectedTeamDetails, setSelectedTeamDetails] = useState(null);
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [teamSearchTerm, setTeamSearchTerm] = useState('');
+  const [teamCurrentPage, setTeamCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   const loadTeam = async (id) => {
     if (!id) return;
@@ -199,6 +201,42 @@ export default function TeamPage() {
     t.creator_email?.toLowerCase().includes(teamSearchTerm.toLowerCase())
   );
 
+  // Pagination for teams
+  const teamTotalPages = Math.ceil(filteredTeams.length / ITEMS_PER_PAGE);
+  const teamStartIndex = (teamCurrentPage - 1) * ITEMS_PER_PAGE;
+  const teamEndIndex = teamStartIndex + ITEMS_PER_PAGE;
+  const paginatedTeams = filteredTeams.slice(teamStartIndex, teamEndIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setTeamCurrentPage(1);
+  }, [teamSearchTerm]);
+
+  const paginationStyles = {
+    container: {
+      display: 'flex',
+      gap: '0.5rem',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: '1rem',
+      fontSize: '0.85rem',
+    },
+    button: {
+      padding: '0.4rem 0.8rem',
+      fontSize: '0.8rem',
+      background: 'rgba(148, 163, 184, 0.3)',
+      color: '#fff',
+      border: '1px solid rgba(148, 163, 184, 0.4)',
+      borderRadius: '0.25rem',
+      cursor: 'pointer',
+      fontWeight: '500',
+    },
+    buttonActive: {
+      background: '#ef4444',
+      borderColor: '#ef4444',
+    },
+  };
+
   return (
     <section className="card">
       <h2>Team Management</h2>
@@ -216,10 +254,10 @@ export default function TeamPage() {
       {user?.role === 'organizer' && hackathonId && (
         <div className="card" style={{ 
           marginTop: '1rem', 
-          backgroundColor: 'rgba(239, 68, 68, 0.1)', 
-          border: '2px solid rgba(239, 68, 68, 0.3)' 
+          backgroundColor: 'rgba(2, 8, 87, 0.1)', 
+          border: '2px solid rgba(0, 17, 255, 0.3)' 
         }}>
-          <h3 style={{ color: '#ef4444' }}>🔧 Organizer View - All Teams</h3>
+          <h3 style={{ color: '#fff' }}>Organizer View - All Teams</h3>
           <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
             View and manage all teams for this hackathon. Click on any team to see details.
           </p>
@@ -233,14 +271,16 @@ export default function TeamPage() {
           />
           
           <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
-            Showing {filteredTeams.length} of {allTeams.length} teams
+            Showing {teamStartIndex + 1}-{Math.min(teamEndIndex, filteredTeams.length)} of {filteredTeams.length} teams
+            {filteredTeams.length !== allTeams.length && ` (filtered from ${allTeams.length})`}
           </p>
 
-          {filteredTeams.length === 0 ? (
+          {paginatedTeams.length === 0 ? (
             <p style={{ color: '#94a3b8' }}>No teams found</p>
           ) : (
-            <div>
-              {filteredTeams.map((team) => (
+            <>
+              <div>
+                {paginatedTeams.map((team) => (
                 <div 
                   key={team.id} 
                   style={{ 
@@ -259,7 +299,7 @@ export default function TeamPage() {
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <strong style={{ fontSize: '1rem' }}>{team.name}</strong>
+                        <strong style={{ fontSize: '1rem', color: '#fff' }}>{team.name}</strong>
                         {team.is_public && (
                           <span style={{ 
                             fontSize: '0.7rem', 
@@ -289,7 +329,39 @@ export default function TeamPage() {
                   </div>
                 </div>
               ))}
-            </div>
+              </div>
+
+              {teamTotalPages > 1 && (
+                <div style={paginationStyles.container}>
+                  <button
+                    style={{...paginationStyles.button, ...(teamCurrentPage === 1 && {opacity: 0.5, cursor: 'not-allowed'})}}
+                    onClick={() => setTeamCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={teamCurrentPage === 1}
+                  >
+                    Previous
+                  </button>
+                  {Array.from({ length: teamTotalPages }, (_, i) => i + 1).map(page => (
+                    <button
+                      key={page}
+                      style={{
+                        ...paginationStyles.button,
+                        ...(page === teamCurrentPage && paginationStyles.buttonActive)
+                      }}
+                      onClick={() => setTeamCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    style={{...paginationStyles.button, ...(teamCurrentPage === teamTotalPages && {opacity: 0.5, cursor: 'not-allowed'})}}
+                    onClick={() => setTeamCurrentPage(p => Math.min(teamTotalPages, p + 1))}
+                    disabled={teamCurrentPage === teamTotalPages}
+                  >
+                    Next
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}

@@ -15,6 +15,9 @@ export default function AdminPage() {
   const [userDetails, setUserDetails] = useState(null);
   const [availableTeams, setAvailableTeams] = useState([]);
   const [selectedTeamToJoin, setSelectedTeamToJoin] = useState('');
+  const [regCurrentPage, setRegCurrentPage] = useState(1);
+  const [userCurrentPage, setUserCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 15;
 
   const load = async () => {
     setError('');
@@ -151,6 +154,27 @@ export default function AdminPage() {
   const filteredUsers = users.filter((u) =>
     u.email.toLowerCase().includes(userSearchTerm.toLowerCase())
   );
+
+  // Pagination for registrations
+  const regTotalPages = Math.ceil(filteredRegistrations.length / ITEMS_PER_PAGE);
+  const regStartIndex = (regCurrentPage - 1) * ITEMS_PER_PAGE;
+  const regEndIndex = regStartIndex + ITEMS_PER_PAGE;
+  const paginatedRegistrations = filteredRegistrations.slice(regStartIndex, regEndIndex);
+
+  // Pagination for users
+  const userTotalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const userStartIndex = (userCurrentPage - 1) * ITEMS_PER_PAGE;
+  const userEndIndex = userStartIndex + ITEMS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(userStartIndex, userEndIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setRegCurrentPage(1);
+  }, [regSearchTerm, regStatusFilter]);
+
+  useEffect(() => {
+    setUserCurrentPage(1);
+  }, [userSearchTerm, userStatusFilter]);
 
   const unblock = async (userId) => {
     try {
@@ -354,6 +378,34 @@ export default function AdminPage() {
       padding: '0.75rem',
       marginBottom: '0.5rem',
     },
+    pagination: {
+      display: 'flex',
+      gap: '0.5rem',
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: '1rem',
+      fontSize: '0.85rem',
+    },
+    paginationButton: {
+      padding: '0.4rem 0.8rem',
+      fontSize: '0.8rem',
+      background: 'rgba(148, 163, 184, 0.3)',
+      color: '#fff',
+      border: '1px solid rgba(148, 163, 184, 0.4)',
+      borderRadius: '0.25rem',
+      cursor: 'pointer',
+      fontWeight: '500',
+      textTransform: 'none',
+      letterSpacing: 'normal',
+    },
+    paginationButtonActive: {
+      background: '#ef4444',
+      borderColor: '#ef4444',
+    },
+    paginationInfo: {
+      color: '#94a3b8',
+      padding: '0 0.5rem',
+    },
   };
 
   const getStatusColor = (status) => {
@@ -415,7 +467,9 @@ export default function AdminPage() {
         </div>
 
         <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
-          Showing {filteredRegistrations.length} of {registrations.length} registrations • Click on email to view user details
+          Showing {regStartIndex + 1}-{Math.min(regEndIndex, filteredRegistrations.length)} of {filteredRegistrations.length} registrations
+          {filteredRegistrations.length !== registrations.length && ` (filtered from ${registrations.length})`}
+          • Click on email to view user details
         </div>
 
         <table style={adminStyles.table}>
@@ -427,14 +481,14 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredRegistrations.length === 0 ? (
+            {paginatedRegistrations.length === 0 ? (
               <tr>
                 <td colSpan="3" style={{...adminStyles.cell, textAlign: 'center', color: '#94a3b8'}}>
                   {registrations.length === 0 ? 'No registrations found' : 'No matching registrations'}
                 </td>
               </tr>
             ) : (
-              filteredRegistrations.map((r) => {
+              paginatedRegistrations.map((r) => {
                 const statusStyle = getStatusColor(r.status);
                 return (
                   <tr key={r.id} style={adminStyles.row}>
@@ -476,6 +530,37 @@ export default function AdminPage() {
             )}
           </tbody>
         </table>
+
+        {regTotalPages > 1 && (
+          <div style={adminStyles.pagination}>
+            <button
+              style={{...adminStyles.paginationButton, ...(regCurrentPage === 1 && {opacity: 0.5, cursor: 'not-allowed'})}}
+              onClick={() => setRegCurrentPage(p => Math.max(1, p - 1))}
+              disabled={regCurrentPage === 1}
+            >
+              Previous
+            </button>
+            {Array.from({ length: regTotalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                style={{
+                  ...adminStyles.paginationButton,
+                  ...(page === regCurrentPage && adminStyles.paginationButtonActive)
+                }}
+                onClick={() => setRegCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              style={{...adminStyles.paginationButton, ...(regCurrentPage === regTotalPages && {opacity: 0.5, cursor: 'not-allowed'})}}
+              onClick={() => setRegCurrentPage(p => Math.min(regTotalPages, p + 1))}
+              disabled={regCurrentPage === regTotalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={adminStyles.section}>
@@ -503,7 +588,9 @@ export default function AdminPage() {
         </div>
 
         <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
-          Showing {filteredUsers.length} of {users.length} users • Click on a user to view details
+          Showing {userStartIndex + 1}-{Math.min(userEndIndex, filteredUsers.length)} of {filteredUsers.length} users
+          {filteredUsers.length !== users.length && ` (filtered from ${users.length})`}
+          • Click on a user to view details
         </div>
 
         <table style={adminStyles.table}>
@@ -516,14 +603,14 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.length === 0 ? (
+            {paginatedUsers.length === 0 ? (
               <tr>
                 <td colSpan="4" style={{...adminStyles.cell, textAlign: 'center', color: '#94a3b8'}}>
                   {users.length === 0 ? 'No users found' : 'No matching users'}
                 </td>
               </tr>
             ) : (
-              filteredUsers.map((u) => {
+              paginatedUsers.map((u) => {
                 const statusStyle = getStatusColor(u.status);
                 return (
                   <tr 
@@ -556,6 +643,37 @@ export default function AdminPage() {
             )}
           </tbody>
         </table>
+
+        {userTotalPages > 1 && (
+          <div style={adminStyles.pagination}>
+            <button
+              style={{...adminStyles.paginationButton, ...(userCurrentPage === 1 && {opacity: 0.5, cursor: 'not-allowed'})}}
+              onClick={() => setUserCurrentPage(p => Math.max(1, p - 1))}
+              disabled={userCurrentPage === 1}
+            >
+              Previous
+            </button>
+            {Array.from({ length: userTotalPages }, (_, i) => i + 1).map(page => (
+              <button
+                key={page}
+                style={{
+                  ...adminStyles.paginationButton,
+                  ...(page === userCurrentPage && adminStyles.paginationButtonActive)
+                }}
+                onClick={() => setUserCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              style={{...adminStyles.paginationButton, ...(userCurrentPage === userTotalPages && {opacity: 0.5, cursor: 'not-allowed'})}}
+              onClick={() => setUserCurrentPage(p => Math.min(userTotalPages, p + 1))}
+              disabled={userCurrentPage === userTotalPages}
+            >
+              Next
+            </button>
+          </div>
+        )}
       </div>
 
       {/* User Details Modal */}
