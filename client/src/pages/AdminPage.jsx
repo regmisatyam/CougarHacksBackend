@@ -607,10 +607,10 @@ export default function AdminPage() {
                   </>
                 )}
                 
-                {userDetails.user.school && (
+                {userDetails.user.university && (
                   <>
-                    <span style={adminStyles.detailLabel}>School:</span>
-                    <span style={adminStyles.detailValue}>{userDetails.user.school}</span>
+                    <span style={adminStyles.detailLabel}>University:</span>
+                    <span style={adminStyles.detailValue}>{userDetails.user.university}</span>
                   </>
                 )}
                 

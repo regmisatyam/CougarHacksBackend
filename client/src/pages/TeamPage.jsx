@@ -16,6 +16,10 @@ export default function TeamPage() {
   const [registration, setRegistration] = useState(null);
   const [availableTeams, setAvailableTeams] = useState([]);
   const [showAvailableTeams, setShowAvailableTeams] = useState(false);
+  const [allTeams, setAllTeams] = useState([]);
+  const [selectedTeamDetails, setSelectedTeamDetails] = useState(null);
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [teamSearchTerm, setTeamSearchTerm] = useState('');
 
   const loadTeam = async (id) => {
     if (!id) return;
@@ -56,6 +60,31 @@ export default function TeamPage() {
     }
   };
 
+  const loadAllTeams = async (id) => {
+    if (!id) return;
+    try {
+      const data = await api(`/admin/teams/all/${id}`);
+      setAllTeams(data.teams || []);
+    } catch {
+      setAllTeams([]);
+    }
+  };
+
+  const loadTeamDetails = async (teamId) => {
+    try {
+      const data = await api(`/admin/teams/details/${teamId}`);
+      setSelectedTeamDetails(data);
+      setShowTeamModal(true);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const closeTeamModal = () => {
+    setShowTeamModal(false);
+    setSelectedTeamDetails(null);
+  };
+
   useEffect(() => {
     (async () => {
       const data = await api('/hackathons');
@@ -80,7 +109,10 @@ export default function TeamPage() {
     loadTeam(hackathonId);
     loadRegistration(hackathonId);
     loadAvailableTeams(hackathonId);
-  }, [hackathonId]);
+    if (user?.role === 'organizer') {
+      loadAllTeams(hackathonId);
+    }
+  }, [hackathonId, user]);
 
   useEffect(() => {
     loadMyInvites();
@@ -95,6 +127,9 @@ export default function TeamPage() {
       await loadTeam(hackathonId);
       await loadMyInvites();
       await loadAvailableTeams(hackathonId);
+      if (user?.role === 'organizer') {
+        await loadAllTeams(hackathonId);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -132,6 +167,9 @@ export default function TeamPage() {
       });
       setMessage(`Team is now ${isPublic ? 'public' : 'private'}`);
       await loadTeam(hackathonId);
+      if (user?.role === 'organizer') {
+        await loadAllTeams(hackathonId);
+      }
     } catch (err) {
       setError(err.message);
     }
@@ -148,10 +186,18 @@ export default function TeamPage() {
       setMessage('Successfully joined team!');
       await loadTeam(hackathonId);
       await loadAvailableTeams(hackathonId);
+      if (user?.role === 'organizer') {
+        await loadAllTeams(hackathonId);
+      }
     } catch (err) {
       setError(err.message);
     }
   };
+
+  const filteredTeams = allTeams.filter((t) =>
+    t.name.toLowerCase().includes(teamSearchTerm.toLowerCase()) ||
+    t.creator_email?.toLowerCase().includes(teamSearchTerm.toLowerCase())
+  );
 
   return (
     <section className="card">
@@ -165,6 +211,88 @@ export default function TeamPage() {
           ))}
         </select>
       </label>
+
+      {/* Organizer View - All Teams */}
+      {user?.role === 'organizer' && hackathonId && (
+        <div className="card" style={{ 
+          marginTop: '1rem', 
+          backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+          border: '2px solid rgba(239, 68, 68, 0.3)' 
+        }}>
+          <h3 style={{ color: '#ef4444' }}>🔧 Organizer View - All Teams</h3>
+          <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+            View and manage all teams for this hackathon. Click on any team to see details.
+          </p>
+          
+          <input
+            type="text"
+            placeholder="Search teams by name or creator..."
+            value={teamSearchTerm}
+            onChange={(e) => setTeamSearchTerm(e.target.value)}
+            style={{ marginBottom: '1rem' }}
+          />
+          
+          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
+            Showing {filteredTeams.length} of {allTeams.length} teams
+          </p>
+
+          {filteredTeams.length === 0 ? (
+            <p style={{ color: '#94a3b8' }}>No teams found</p>
+          ) : (
+            <div>
+              {filteredTeams.map((team) => (
+                <div 
+                  key={team.id} 
+                  style={{ 
+                    padding: '0.75rem', 
+                    border: '1px solid rgba(148, 163, 184, 0.3)',
+                    borderRadius: '4px',
+                    marginBottom: '0.5rem',
+                    cursor: 'pointer',
+                    transition: 'background 0.2s',
+                    backgroundColor: 'rgba(30, 41, 59, 0.3)'
+                  }}
+                  onClick={() => loadTeamDetails(team.id)}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(148, 163, 184, 0.2)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(30, 41, 59, 0.3)'}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <strong style={{ fontSize: '1rem' }}>{team.name}</strong>
+                        {team.is_public && (
+                          <span style={{ 
+                            fontSize: '0.7rem', 
+                            backgroundColor: '#10b981', 
+                            color: 'white',
+                            padding: '2px 6px',
+                            borderRadius: '3px',
+                            fontWeight: 'bold'
+                          }}>
+                            🌐 PUBLIC
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                        Created by: {team.creator_email} • Members: {team.member_count}/{team.max_team_size}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ 
+                        fontSize: '0.75rem', 
+                        color: '#60a5fa',
+                        fontWeight: '500'
+                      }}>
+                        Click to view →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Registration Status Message */}
       {hackathonId && registration && (
@@ -457,6 +585,192 @@ export default function TeamPage() {
 
       {message && <p className="success">{message}</p>}
       {error && <p className="error">{error}</p>}
+
+      {/* Team Details Modal */}
+      {showTeamModal && selectedTeamDetails && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+            padding: '1rem',
+          }}
+          onClick={closeTeamModal}
+        >
+          <div 
+            style={{
+              background: 'rgba(30, 41, 59, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(148, 163, 184, 0.3)',
+              borderRadius: '0.75rem',
+              padding: '1.5rem',
+              maxWidth: '600px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              position: 'relative',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '1rem',
+              paddingBottom: '1rem',
+              borderBottom: '1px solid rgba(148, 163, 184, 0.3)',
+            }}>
+              <h3 style={{ color: '#ef4444', margin: 0, fontSize: '1.25rem' }}>
+                Team Details
+              </h3>
+              <button 
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: '#fff',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  padding: '0.25rem 0.5rem',
+                  lineHeight: 1,
+                }}
+                onClick={closeTeamModal}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Team Info */}
+            <div style={{ marginBottom: '1.5rem' }}>
+              <h4 style={{ color: '#ef4444', fontSize: '1rem', marginBottom: '0.5rem' }}>
+                Team Information
+              </h4>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '120px 1fr',
+                gap: '0.5rem',
+                fontSize: '0.9rem',
+              }}>
+                <span style={{ color: '#94a3b8', fontWeight: '500' }}>Name:</span>
+                <span style={{ color: '#fff', fontWeight: '600' }}>{selectedTeamDetails.team.name}</span>
+                
+                <span style={{ color: '#94a3b8', fontWeight: '500' }}>Team Code:</span>
+                <code style={{
+                  backgroundColor: 'rgba(148, 163, 184, 0.2)',
+                  padding: '2px 6px',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  color: '#60a5fa',
+                }}>
+                  {selectedTeamDetails.team.team_code}
+                </code>
+                
+                <span style={{ color: '#94a3b8', fontWeight: '500' }}>Visibility:</span>
+                <span style={{ color: '#fff' }}>
+                  {selectedTeamDetails.team.is_public ? (
+                    <span style={{ color: '#10b981' }}>🌐 Public</span>
+                  ) : (
+                    <span style={{ color: '#f59e0b' }}>🔒 Private</span>
+                  )}
+                </span>
+                
+                <span style={{ color: '#94a3b8', fontWeight: '500' }}>Creator:</span>
+                <span style={{ color: '#fff' }}>{selectedTeamDetails.team.creator_email}</span>
+                
+                <span style={{ color: '#94a3b8', fontWeight: '500' }}>Hackathon:</span>
+                <span style={{ color: '#fff' }}>{selectedTeamDetails.team.hackathon_name}</span>
+                
+                <span style={{ color: '#94a3b8', fontWeight: '500' }}>Created:</span>
+                <span style={{ color: '#fff' }}>
+                  {new Date(selectedTeamDetails.team.created_at).toLocaleDateString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Team Members */}
+            <div style={{ marginBottom: '1rem' }}>
+              <h4 style={{ color: '#ef4444', fontSize: '1rem', marginBottom: '0.5rem' }}>
+                Team Members ({selectedTeamDetails.members.length}/{selectedTeamDetails.team.max_team_size})
+              </h4>
+              {selectedTeamDetails.members.length === 0 ? (
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No members yet</p>
+              ) : (
+                <div>
+                  {selectedTeamDetails.members.map((member) => (
+                    <div 
+                      key={member.user_id}
+                      style={{
+                        background: 'rgba(148, 163, 184, 0.1)',
+                        border: '1px solid rgba(148, 163, 184, 0.2)',
+                        borderRadius: '0.375rem',
+                        padding: '0.75rem',
+                        marginBottom: '0.5rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontWeight: '600', marginBottom: '0.25rem' }}>
+                            {member.first_name && member.last_name 
+                              ? `${member.first_name} ${member.last_name}`
+                              : member.email}
+                          </div>
+                          <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                            {member.email}
+                          </div>
+                          {(member.university || member.major) && (
+                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                              {member.university && <span>{member.university}</span>}
+                              {member.university && member.major && <span> • </span>}
+                              {member.major && <span>{member.major}</span>}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <span style={{
+                            fontSize: '0.75rem',
+                            fontWeight: '600',
+                            color: member.role === 'leader' ? '#60a5fa' : '#94a3b8',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            backgroundColor: member.role === 'leader' 
+                              ? 'rgba(96, 165, 250, 0.2)' 
+                              : 'rgba(148, 163, 184, 0.2)',
+                          }}>
+                            {member.role === 'leader' ? '👑 Leader' : 'Member'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={closeTeamModal}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                backgroundColor: '#ef4444',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '0.5rem',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '600',
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

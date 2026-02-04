@@ -436,3 +436,63 @@ adminRouter.get('/teams/available/:hackathonId', async (req, res, next) => {
     return next(err);
   }
 });
+
+// Get all teams for a hackathon (with full details)
+adminRouter.get('/teams/all/:hackathonId', async (req, res, next) => {
+  try {
+    const { hackathonId } = req.params;
+    
+    const teams = await sql`
+      SELECT t.*, h.name as hackathon_name, h.max_team_size,
+             (SELECT COUNT(*) FROM team_members WHERE team_id = t.id) as member_count,
+             u.email as creator_email, u.id as creator_id
+      FROM teams t
+      JOIN hackathons h ON h.id = t.hackathon_id
+      LEFT JOIN users u ON u.id = t.created_by
+      WHERE t.hackathon_id = ${hackathonId}
+      ORDER BY t.created_at DESC
+    `;
+    
+    return res.json({ teams });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// Get team details with members
+adminRouter.get('/teams/details/:teamId', async (req, res, next) => {
+  try {
+    const { teamId } = req.params;
+    
+    // Get team info
+    const teamRows = await sql`
+      SELECT t.*, h.name as hackathon_name, h.max_team_size,
+             u.email as creator_email
+      FROM teams t
+      JOIN hackathons h ON h.id = t.hackathon_id
+      LEFT JOIN users u ON u.id = t.created_by
+      WHERE t.id = ${teamId}
+    `;
+    
+    if (teamRows.length === 0) {
+      return res.status(404).json({ error: 'Team not found' });
+    }
+    
+    const team = teamRows[0];
+    
+    // Get team members
+    const members = await sql`
+      SELECT tm.*, u.email, u.id as user_id,
+             p.first_name, p.last_name, p.university, p.major
+      FROM team_members tm
+      JOIN users u ON u.id = tm.user_id
+      LEFT JOIN user_profiles p ON p.user_id = u.id
+      WHERE tm.team_id = ${teamId}
+      ORDER BY tm.role DESC, tm.joined_at ASC
+    `;
+    
+    return res.json({ team, members });
+  } catch (err) {
+    return next(err);
+  }
+});
