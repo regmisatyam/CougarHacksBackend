@@ -11,6 +11,10 @@ export default function AdminPage() {
   const [userStatusFilter, setUserStatusFilter] = useState('active');
   const [userSearchTerm, setUserSearchTerm] = useState('');
   const [error, setError] = useState('');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userDetails, setUserDetails] = useState(null);
+  const [availableTeams, setAvailableTeams] = useState([]);
+  const [selectedTeamToJoin, setSelectedTeamToJoin] = useState('');
 
   const load = async () => {
     setError('');
@@ -67,6 +71,75 @@ export default function AdminPage() {
     } catch (err) {
       setError(err.message || 'Failed to block user');
     }
+  };
+
+  const loadUserDetails = async (userId) => {
+    try {
+      setError('');
+      const data = await api(`/admin/users/${userId}`);
+      setUserDetails(data);
+      setSelectedUser(userId);
+      
+      // Load available teams for each hackathon the user is registered for
+      if (data.registrations && data.registrations.length > 0) {
+        const hackathonId = data.registrations[0].hackathon_id;
+        const teamsData = await api(`/admin/teams/available/${hackathonId}`);
+        setAvailableTeams(teamsData.teams || []);
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const removeFromTeam = async (teamId, userId) => {
+    if (!confirm('Are you sure you want to remove this user from the team?')) return;
+    try {
+      await api('/admin/teams/remove-member', {
+        method: 'POST',
+        body: JSON.stringify({ teamId, userId, reason: 'Removed by admin' }),
+      });
+      await loadUserDetails(userId);
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const addToTeam = async (userId) => {
+    if (!selectedTeamToJoin) {
+      setError('Please select a team');
+      return;
+    }
+    try {
+      await api('/admin/teams/add-member', {
+        method: 'POST',
+        body: JSON.stringify({ teamId: selectedTeamToJoin, userId }),
+      });
+      await loadUserDetails(userId);
+      setSelectedTeamToJoin('');
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const changeUserRole = async (userId, newRole) => {
+    if (!confirm(`Are you sure you want to change this user's role to ${newRole}?`)) return;
+    try {
+      await api('/admin/users/change-role', {
+        method: 'POST',
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+      await loadUserDetails(userId);
+      await load();
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
+  const closeUserModal = () => {
+    setSelectedUser(null);
+    setUserDetails(null);
+    setAvailableTeams([]);
+    setSelectedTeamToJoin('');
   };
 
   // Filter registrations based on search term
@@ -201,6 +274,86 @@ export default function AdminPage() {
       gap: '0.25rem',
       flexWrap: 'wrap',
     },
+    clickableRow: {
+      cursor: 'pointer',
+      transition: 'background 0.2s',
+    },
+    modal: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: 'rgba(0, 0, 0, 0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '1rem',
+    },
+    modalContent: {
+      background: 'rgba(30, 41, 59, 0.95)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(148, 163, 184, 0.3)',
+      borderRadius: '0.75rem',
+      padding: '1.5rem',
+      maxWidth: '800px',
+      width: '100%',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      position: 'relative',
+    },
+    modalHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: '1rem',
+      paddingBottom: '1rem',
+      borderBottom: '1px solid rgba(148, 163, 184, 0.3)',
+    },
+    modalTitle: {
+      fontSize: '1.25rem',
+      color: '#ef4444',
+      margin: 0,
+    },
+    closeButton: {
+      background: 'transparent',
+      border: 'none',
+      color: '#fff',
+      fontSize: '1.5rem',
+      cursor: 'pointer',
+      padding: '0.25rem 0.5rem',
+      lineHeight: 1,
+    },
+    detailSection: {
+      marginBottom: '1.5rem',
+    },
+    detailTitle: {
+      fontSize: '1rem',
+      color: '#ef4444',
+      marginBottom: '0.5rem',
+      fontWeight: '600',
+    },
+    detailGrid: {
+      display: 'grid',
+      gridTemplateColumns: '150px 1fr',
+      gap: '0.5rem',
+      fontSize: '0.9rem',
+    },
+    detailLabel: {
+      color: '#94a3b8',
+      fontWeight: '500',
+    },
+    detailValue: {
+      color: '#fff',
+    },
+    teamCard: {
+      background: 'rgba(148, 163, 184, 0.1)',
+      border: '1px solid rgba(148, 163, 184, 0.2)',
+      borderRadius: '0.375rem',
+      padding: '0.75rem',
+      marginBottom: '0.5rem',
+    },
   };
 
   const getStatusColor = (status) => {
@@ -262,7 +415,7 @@ export default function AdminPage() {
         </div>
 
         <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
-          Showing {filteredRegistrations.length} of {registrations.length} registrations
+          Showing {filteredRegistrations.length} of {registrations.length} registrations • Click on email to view user details
         </div>
 
         <table style={adminStyles.table}>
@@ -285,7 +438,12 @@ export default function AdminPage() {
                 const statusStyle = getStatusColor(r.status);
                 return (
                   <tr key={r.id} style={adminStyles.row}>
-                    <td style={adminStyles.cell}>
+                    <td 
+                      style={{...adminStyles.cell, cursor: 'pointer'}}
+                      onClick={() => loadUserDetails(r.user_id)}
+                      onMouseEnter={(e) => e.currentTarget.style.textDecoration = 'underline'}
+                      onMouseLeave={(e) => e.currentTarget.style.textDecoration = 'none'}
+                    >
                       <span style={adminStyles.email}>{r.email}</span>
                     </td>
                     <td style={adminStyles.cell}>
@@ -345,7 +503,7 @@ export default function AdminPage() {
         </div>
 
         <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
-          Showing {filteredUsers.length} of {users.length} users
+          Showing {filteredUsers.length} of {users.length} users • Click on a user to view details
         </div>
 
         <table style={adminStyles.table}>
@@ -368,12 +526,17 @@ export default function AdminPage() {
               filteredUsers.map((u) => {
                 const statusStyle = getStatusColor(u.status);
                 return (
-                  <tr key={u.id} style={adminStyles.row}>
-                    <td style={adminStyles.cell}>
+                  <tr 
+                    key={u.id} 
+                    style={{...adminStyles.row, ...adminStyles.clickableRow}}
+                    onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(148, 163, 184, 0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  >
+                    <td style={adminStyles.cell} onClick={() => loadUserDetails(u.id)}>
                       <span style={adminStyles.email}>{u.email}</span>
                     </td>
-                    <td style={adminStyles.cell}>{u.role}</td>
-                    <td style={adminStyles.cell}>
+                    <td style={adminStyles.cell} onClick={() => loadUserDetails(u.id)}>{u.role}</td>
+                    <td style={adminStyles.cell} onClick={() => loadUserDetails(u.id)}>
                       <span style={{...adminStyles.status, background: statusStyle.bg, color: statusStyle.color}}>
                         {u.status}
                       </span>
@@ -382,9 +545,9 @@ export default function AdminPage() {
                       {u.role === 'organizer' ? (
                         <span style={{fontSize: '0.75rem', color: '#94a3b8'}}>Protected</span>
                       ) : u.status === 'active' ? (
-                        <button style={adminStyles.button} onClick={() => block(u.id)}>Block User</button>
+                        <button style={adminStyles.button} onClick={(e) => { e.stopPropagation(); block(u.id); }}>Block</button>
                       ) : (
-                        <button style={{...adminStyles.button, background: '#10b981'}} onClick={() => unblock(u.id)}>Unblock User</button>
+                        <button style={{...adminStyles.button, background: '#10b981'}} onClick={(e) => { e.stopPropagation(); unblock(u.id); }}>Unblock</button>
                       )}
                     </td>
                   </tr>
@@ -394,6 +557,152 @@ export default function AdminPage() {
           </tbody>
         </table>
       </div>
+
+      {/* User Details Modal */}
+      {selectedUser && userDetails && (
+        <div style={adminStyles.modal} onClick={closeUserModal}>
+          <div style={adminStyles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={adminStyles.modalHeader}>
+              <h3 style={adminStyles.modalTitle}>User Details</h3>
+              <button style={adminStyles.closeButton} onClick={closeUserModal}>&times;</button>
+            </div>
+
+            {error && <p className="error" style={{marginBottom: '1rem'}}>{error}</p>}
+
+            {/* Basic Info */}
+            <div style={adminStyles.detailSection}>
+              <h4 style={adminStyles.detailTitle}>Basic Information</h4>
+              <div style={adminStyles.detailGrid}>
+                <span style={adminStyles.detailLabel}>Email:</span>
+                <span style={adminStyles.detailValue}>{userDetails.user.email}</span>
+                
+                <span style={adminStyles.detailLabel}>Name:</span>
+                <span style={adminStyles.detailValue}>
+                  {userDetails.user.first_name} {userDetails.user.last_name}
+                </span>
+                
+                <span style={adminStyles.detailLabel}>Role:</span>
+                <span style={adminStyles.detailValue}>
+                  {userDetails.user.role}
+                  {userDetails.user.role !== 'organizer' && (
+                    <>
+                      {' '}
+                      <button 
+                        style={{...adminStyles.button, marginLeft: '0.5rem'}}
+                        onClick={() => changeUserRole(userDetails.user.id, userDetails.user.role === 'participant' ? 'organizer' : 'participant')}
+                      >
+                        Make {userDetails.user.role === 'participant' ? 'Organizer' : 'Participant'}
+                      </button>
+                    </>
+                  )}
+                </span>
+                
+                <span style={adminStyles.detailLabel}>Status:</span>
+                <span style={adminStyles.detailValue}>{userDetails.user.status}</span>
+                
+                {userDetails.user.phone && (
+                  <>
+                    <span style={adminStyles.detailLabel}>Phone:</span>
+                    <span style={adminStyles.detailValue}>{userDetails.user.phone}</span>
+                  </>
+                )}
+                
+                {userDetails.user.school && (
+                  <>
+                    <span style={adminStyles.detailLabel}>School:</span>
+                    <span style={adminStyles.detailValue}>{userDetails.user.school}</span>
+                  </>
+                )}
+                
+                {userDetails.user.major && (
+                  <>
+                    <span style={adminStyles.detailLabel}>Major:</span>
+                    <span style={adminStyles.detailValue}>{userDetails.user.major}</span>
+                  </>
+                )}
+                
+                {userDetails.user.graduation_year && (
+                  <>
+                    <span style={adminStyles.detailLabel}>Graduation Year:</span>
+                    <span style={adminStyles.detailValue}>{userDetails.user.graduation_year}</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Registrations */}
+            <div style={adminStyles.detailSection}>
+              <h4 style={adminStyles.detailTitle}>Registrations ({userDetails.registrations.length})</h4>
+              {userDetails.registrations.length === 0 ? (
+                <p style={{color: '#94a3b8', fontSize: '0.9rem'}}>No registrations</p>
+              ) : (
+                userDetails.registrations.map((reg) => (
+                  <div key={reg.id} style={adminStyles.teamCard}>
+                    <div><strong>{reg.hackathon_name}</strong></div>
+                    <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
+                      Status: <span style={{color: getStatusColor(reg.status).color}}>{reg.status}</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Teams */}
+            <div style={adminStyles.detailSection}>
+              <h4 style={adminStyles.detailTitle}>Teams ({userDetails.teams.length})</h4>
+              {userDetails.teams.length === 0 ? (
+                <p style={{color: '#94a3b8', fontSize: '0.9rem'}}>Not in any team</p>
+              ) : (
+                userDetails.teams.map((team) => (
+                  <div key={team.team_id} style={adminStyles.teamCard}>
+                    <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                      <div>
+                        <div><strong>{team.team_name}</strong></div>
+                        <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
+                          {team.hackathon_name} • Role: {team.role}
+                        </div>
+                      </div>
+                      <button 
+                        style={adminStyles.button}
+                        onClick={() => removeFromTeam(team.team_id, userDetails.user.id)}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+
+            {/* Add to Team */}
+            {availableTeams.length > 0 && (
+              <div style={adminStyles.detailSection}>
+                <h4 style={adminStyles.detailTitle}>Add to Team</h4>
+                <div style={{display: 'flex', gap: '0.5rem', alignItems: 'center'}}>
+                  <select 
+                    style={{...adminStyles.select, flex: 1}}
+                    value={selectedTeamToJoin}
+                    onChange={(e) => setSelectedTeamToJoin(e.target.value)}
+                  >
+                    <option value="">Select a team...</option>
+                    {availableTeams.map((team) => (
+                      <option key={team.id} value={team.id}>
+                        {team.name} ({team.current_members}/{team.max_team_size}) {team.is_public ? '🌐' : '🔒'}
+                      </option>
+                    ))}
+                  </select>
+                  <button 
+                    style={adminStyles.button}
+                    onClick={() => addToTeam(userDetails.user.id)}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
