@@ -37,11 +37,17 @@ export default function CompleteProfilePage() {
           firstName: u.first_name || prev.firstName,
           lastName: u.last_name || prev.lastName,
           phone: u.phone || prev.phone,
+          dob: u.dob ? u.dob.split('T')[0] : prev.dob,
+          gender: u.gender || prev.gender,
           university: u.university || prev.university,
           major: u.major || prev.major,
           graduationYear: u.graduation_year ? String(u.graduation_year) : prev.graduationYear,
           country: u.country || prev.country,
           city: u.city || prev.city,
+          dietaryRestrictions: u.dietary_restrictions || prev.dietaryRestrictions,
+          githubUrl: u.github_url || prev.githubUrl,
+          linkedinUrl: u.linkedin_url || prev.linkedinUrl,
+          portfolioUrl: u.portfolio_url || prev.portfolioUrl,
         }));
       } catch {
         // ignore prefill errors
@@ -67,8 +73,8 @@ export default function CompleteProfilePage() {
     // Validate all required fields for step 1
     const requiredFields = [
       'firstName', 'lastName', 'phone', 'dob', 'gender',
-      'university', 'major', 'graduationYear', 'country', 'city',
-      'dietaryRestrictions', 'githubUrl', 'linkedinUrl', 'portfolioUrl'
+      'university', 'major', 'graduationYear',
+      'dietaryRestrictions', 'githubUrl'
     ];
     
     const missingFields = requiredFields.filter(field => !form[field]);
@@ -110,7 +116,7 @@ export default function CompleteProfilePage() {
     <section className="card">
       <h2>{step === 1 ? 'Complete Your Profile' : 'Select Active Hackathon'}</h2>
       <p className="form-subtitle">
-        {step === 1 ? 'All fields are required. Please provide your complete information.' : 'Choose the hackathon you want to participate in.'}
+        {step === 1 ? 'Fields marked with * are required. Please provide your information.' : 'Choose the hackathon you want to participate in.'}
       </p>
       
       {step === 1 ? (
@@ -181,25 +187,23 @@ export default function CompleteProfilePage() {
               </select>
               
               <label style={{ display: 'block', marginBottom: '0.5rem', marginTop: '1rem', fontWeight: '500' }}>
-                Country <span style={{ color: 'var(--color-error)' }}>*</span>
+                Country
               </label>
               <input 
                 type="text"
                 placeholder="United States" 
                 value={form.country} 
                 onChange={(e) => setForm({ ...form, country: e.target.value })} 
-                required 
               />
               
               <label>
-                City <span className="required">*</span>
+                City
               </label>
               <input 
                 type="text"
                 placeholder="Caldwell" 
                 value={form.city} 
                 onChange={(e) => setForm({ ...form, city: e.target.value })} 
-                required 
               />
             </div>
             

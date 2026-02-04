@@ -136,7 +136,8 @@ authRouter.post('/exchange-verifier', async (req, res, next) => {
     setSessionCookie(res, token, expiresAt);
 
     const profileRows = await sql`
-      SELECT first_name, last_name, university, major, graduation_year, country, city
+      SELECT first_name, last_name, phone, dob, gender, university, major, 
+             graduation_year, dietary_restrictions, github_url
       FROM user_profiles
       WHERE user_id = ${localUser.id}
       LIMIT 1
@@ -145,11 +146,14 @@ authRouter.post('/exchange-verifier', async (req, res, next) => {
     const profileComplete = Boolean(
       p.first_name &&
       p.last_name &&
+      p.phone &&
+      p.dob &&
+      p.gender &&
       p.university &&
       p.major &&
       p.graduation_year &&
-      p.country &&
-      p.city
+      p.dietary_restrictions &&
+      p.github_url
     );
 
     return res.json({
@@ -185,13 +189,25 @@ authRouter.post('/sync-oauth', async (req, res, next) => {
     setSessionCookie(res, token, expiresAt);
 
     const profileRows = await sql`
-      SELECT first_name, last_name, university
+      SELECT first_name, last_name, phone, dob, gender, university, major, 
+             graduation_year, dietary_restrictions, github_url
       FROM user_profiles
       WHERE user_id = ${localUser.id}
       LIMIT 1
     `;
     const p = profileRows[0] || {};
-    const profileComplete = Boolean(p.first_name && p.last_name && p.university);
+    const profileComplete = Boolean(
+      p.first_name &&
+      p.last_name &&
+      p.phone &&
+      p.dob &&
+      p.gender &&
+      p.university &&
+      p.major &&
+      p.graduation_year &&
+      p.dietary_restrictions &&
+      p.github_url
+    );
 
     return res.json({
       user: {
@@ -356,12 +372,8 @@ authRouter.get('/me', requireAuth, async (req, res, next) => {
       user?.university &&
       user?.major &&
       user?.graduation_year &&
-      user?.country &&
-      user?.city &&
       user?.dietary_restrictions &&
-      user?.github_url &&
-      user?.linkedin_url &&
-      user?.portfolio_url
+      user?.github_url
     );
     return res.json({ user, profileComplete });
   } catch (err) {
