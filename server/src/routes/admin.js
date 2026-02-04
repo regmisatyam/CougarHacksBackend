@@ -15,18 +15,30 @@ async function createAudit({ actorUserId, targetUserId = null, hackathonId = nul
 
 adminRouter.get('/registrations', async (req, res, next) => {
   try {
-    const { hackathonId, status = 'pending' } = req.query;
+    const { hackathonId, status } = req.query;
     if (!hackathonId) return res.status(400).json({ error: 'hackathonId query param is required' });
 
-    const rows = await sql`
-      SELECT r.*, u.email, p.first_name, p.last_name
-      FROM registrations r
-      JOIN users u ON u.id = r.user_id
-      LEFT JOIN user_profiles p ON p.user_id = u.id
-      WHERE r.hackathon_id = ${hackathonId}
-        AND r.status = ${status}
-      ORDER BY r.applied_at ASC
-    `;
+    let rows;
+    if (status && status !== 'all') {
+      rows = await sql`
+        SELECT r.*, u.email, p.first_name, p.last_name
+        FROM registrations r
+        JOIN users u ON u.id = r.user_id
+        LEFT JOIN user_profiles p ON p.user_id = u.id
+        WHERE r.hackathon_id = ${hackathonId}
+          AND r.status = ${status}
+        ORDER BY r.applied_at ASC
+      `;
+    } else {
+      rows = await sql`
+        SELECT r.*, u.email, p.first_name, p.last_name
+        FROM registrations r
+        JOIN users u ON u.id = r.user_id
+        LEFT JOIN user_profiles p ON p.user_id = u.id
+        WHERE r.hackathon_id = ${hackathonId}
+        ORDER BY r.applied_at ASC
+      `;
+    }
 
     return res.json({ registrations: rows });
   } catch (err) {
@@ -37,9 +49,9 @@ adminRouter.get('/registrations', async (req, res, next) => {
 adminRouter.post('/registrations/decision', async (req, res, next) => {
   try {
     const { registrationId, decision, reason = null } = req.body || {};
-    const allowed = ['accepted', 'rejected', 'waitlisted'];
+    const allowed = ['accepted', 'rejected', 'waitlisted', 'pending', 'cancelled'];
 
-    if (!registrationId || !allowed.includes(decision)) {
+    if (!registrationId || !decision || !allowed.includes(decision)) {
       return res.status(400).json({ error: 'registrationId and decision are required' });
     }
 
