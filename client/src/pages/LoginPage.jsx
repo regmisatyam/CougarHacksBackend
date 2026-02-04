@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/http';
 import { useAuth } from '../context/AuthContext';
@@ -9,8 +9,24 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { setUser, setProfileComplete } = useAuth();
+  const { user, loading, setUser, setProfileComplete } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading state
+  if (loading) {
+    return (
+      <section className="card">
+        <p style={{ textAlign: 'center' }}>Loading...</p>
+      </section>
+    );
+  }
 
   const onSubmit = async (e) => {
     e.preventDefault();

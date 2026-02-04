@@ -1,4 +1,4 @@
-import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Route, Routes, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { useLayoutEffect, useRef, useState } from 'react';
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute';
 import { useAuth } from './context/AuthContext';
@@ -11,6 +11,21 @@ import CompleteProfilePage from './pages/CompleteProfilePage';
 import ProfilePage from './pages/ProfilePage';
 import { api } from './api/http';
 import { neonAuth } from './lib/neonAuth';
+
+// Home redirect component
+function Home() {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem' }}>
+        <p>Loading...</p>
+      </div>
+    );
+  }
+  
+  return user ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
+}
 
 function Nav() {
   const { user, setUser } = useAuth();
@@ -83,7 +98,7 @@ function Nav() {
     <nav className="navbar">
       <div className="navbarInner">
         {/* Logo */}
-        <Link to="/dashboard" className="navLogo">
+        <Link to={user ? "/dashboard" : "/login"} className="navLogo">
           🐾 CougarHacks
         </Link>
 
@@ -151,6 +166,7 @@ export default function App() {
       <Nav />
       <main className="container">
         <Routes>
+          <Route path="/" element={<Home />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -194,7 +210,7 @@ export default function App() {
               </AdminRoute>
             }
           />
-          <Route path="*" element={<LoginPage />} />
+          <Route path="*" element={<Home />} />
         </Routes>
       </main>
     </>
