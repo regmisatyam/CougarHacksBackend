@@ -108,12 +108,12 @@ export default function DashboardPage() {
       {needsTeam && (
         <div className="card" style={{ 
           marginTop: '1rem', 
-          backgroundColor: '#fef3c7', 
+          backgroundColor: 'rgba(245, 158, 11, 0.1)', 
           border: '2px solid #f59e0b',
           padding: '1rem'
         }}>
-          <h3 style={{ color: '#92400e', marginTop: 0 }}>🎉 Congratulations! You've been accepted!</h3>
-          <p style={{ color: '#78350f', marginBottom: '1rem' }}>
+          <h3 style={{ color: '#fbbf24', marginTop: 0 }}>🎉 Congratulations! You've been accepted!</h3>
+          <p style={{ color: '#fcd34d', marginBottom: '1rem' }}>
             You need to either <strong>create a team</strong> (as team leader) or <strong>join an existing team</strong> to participate. 
             Teams can have up to 4 members. You can also skip this for now and join a team later.
           </p>
@@ -168,7 +168,7 @@ export default function DashboardPage() {
             )}
             
             {isRegistered && (
-              <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: 'rgba(59, 130, 246, 0.15)', borderRadius: '4px' }}>
+              <div style={{ marginTop: '1rem', padding: '0.75rem', backgroundColor: 'rgba(59, 130, 246, 0.15)', borderRadius: '50px' }}>
                 <p style={{ margin: 0, color: 'rgba(255, 255, 255, 0.8)' }}>
                   ✓ You have already applied to this hackathon. Status: <strong>{registration.status}</strong>
                 </p>

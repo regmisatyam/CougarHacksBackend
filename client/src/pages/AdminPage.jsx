@@ -191,7 +191,7 @@ export default function AdminPage() {
   const adminStyles = {
     container: {
       padding: '1rem',
-      fontSize: '0.9rem',
+      fontSize: '1rem',
     },
     header: {
       fontSize: '1.5rem',
@@ -202,7 +202,7 @@ export default function AdminPage() {
     section: {
       background: 'rgba(30, 41, 59, 0.3)',
       border: '1px solid rgba(148, 163, 184, 0.2)',
-      borderRadius: '0.5rem',
+      borderRadius: '50px',
       padding: '1rem',
       marginBottom: '1rem',
     },
@@ -224,35 +224,35 @@ export default function AdminPage() {
       gap: '0.25rem',
     },
     label: {
-      fontSize: '0.8rem',
+      fontSize: '1rem',
       fontWeight: '500',
       marginBottom: '0.25rem',
     },
     select: {
       padding: '0.4rem 0.6rem',
-      fontSize: '0.85rem',
+      fontSize: '1.1rem',
       background: 'rgba(30, 41, 59, 0.5)',
       border: '1px solid rgba(148, 163, 184, 0.3)',
-      borderRadius: '0.375rem',
+      borderRadius: '50px',
       color: '#fff',
       minWidth: '150px',
     },
     input: {
       padding: '0.4rem 0.6rem',
-      fontSize: '0.85rem',
+      fontSize: '1.1rem',
       background: 'rgba(30, 41, 59, 0.5)',
       border: '1px solid rgba(148, 163, 184, 0.3)',
-      borderRadius: '0.375rem',
+      borderRadius: '50px',
       color: '#fff',
       minWidth: '200px',
     },
     button: {
       padding: '0.35rem 0.7rem',
-      fontSize: '0.75rem',
+      fontSize: '1.1rem',
       background: '#ef4444',
       color: '#fff',
       border: 'none',
-      borderRadius: '0.25rem',
+      borderRadius: '50px',
       cursor: 'pointer',
       fontWeight: '500',
       textTransform: 'none',
@@ -260,11 +260,11 @@ export default function AdminPage() {
     },
     buttonSecondary: {
       padding: '0.35rem 0.7rem',
-      fontSize: '0.75rem',
+      fontSize: '1.1rem',
       background: 'rgba(148, 163, 184, 0.3)',
       color: '#fff',
       border: '1px solid rgba(148, 163, 184, 0.4)',
-      borderRadius: '0.25rem',
+      borderRadius: '50px',
       cursor: 'pointer',
       fontWeight: '500',
       textTransform: 'none',
@@ -288,8 +288,8 @@ export default function AdminPage() {
     status: {
       display: 'inline-block',
       padding: '0.2rem 0.5rem',
-      borderRadius: '0.25rem',
-      fontSize: '0.75rem',
+      borderRadius: '50px',
+      fontSize: '1.1rem',
       fontWeight: '600',
       marginLeft: '0.5rem',
     },
@@ -319,7 +319,7 @@ export default function AdminPage() {
       background: 'rgba(30, 41, 59, 0.95)',
       backdropFilter: 'blur(10px)',
       border: '1px solid rgba(148, 163, 184, 0.3)',
-      borderRadius: '0.75rem',
+      borderRadius: '50px',
       padding: '1.5rem',
       maxWidth: '800px',
       width: '100%',
@@ -362,7 +362,7 @@ export default function AdminPage() {
       display: 'grid',
       gridTemplateColumns: '150px 1fr',
       gap: '0.5rem',
-      fontSize: '0.9rem',
+      fontSize: '1rem',
     },
     detailLabel: {
       color: '#94a3b8',
@@ -374,7 +374,7 @@ export default function AdminPage() {
     teamCard: {
       background: 'rgba(148, 163, 184, 0.1)',
       border: '1px solid rgba(148, 163, 184, 0.2)',
-      borderRadius: '0.375rem',
+      borderRadius: '50px',
       padding: '0.75rem',
       marginBottom: '0.5rem',
     },
@@ -384,15 +384,15 @@ export default function AdminPage() {
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: '1rem',
-      fontSize: '0.85rem',
+      fontSize: '1.1rem',
     },
     paginationButton: {
       padding: '0.4rem 0.8rem',
-      fontSize: '0.8rem',
+      fontSize: '1rem',
       background: 'rgba(148, 163, 184, 0.3)',
       color: '#fff',
       border: '1px solid rgba(148, 163, 184, 0.4)',
-      borderRadius: '0.25rem',
+      borderRadius: '50px',
       cursor: 'pointer',
       fontWeight: '500',
       textTransform: 'none',
@@ -466,7 +466,7 @@ export default function AdminPage() {
           <button style={{...adminStyles.buttonSecondary, marginTop: '1.2rem'}} onClick={load}>Refresh</button>
         </div>
 
-        <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
+        <div style={{fontSize: '1.1rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
           Showing {regStartIndex + 1}-{Math.min(regEndIndex, filteredRegistrations.length)} of {filteredRegistrations.length} registrations
           {filteredRegistrations.length !== registrations.length && ` (filtered from ${registrations.length})`}
           • Click on email to view user details
@@ -587,7 +587,7 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div style={{fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
+        <div style={{fontSize: '1.1rem', color: '#94a3b8', marginBottom: '0.5rem'}}>
           Showing {userStartIndex + 1}-{Math.min(userEndIndex, filteredUsers.length)} of {filteredUsers.length} users
           {filteredUsers.length !== users.length && ` (filtered from ${users.length})`}
           • Click on a user to view details
@@ -630,7 +630,7 @@ export default function AdminPage() {
                     </td>
                     <td style={{...adminStyles.cell, textAlign: 'right'}}>
                       {u.role === 'organizer' ? (
-                        <span style={{fontSize: '0.75rem', color: '#94a3b8'}}>Protected</span>
+                        <span style={{fontSize: '0.85rem', color: '#94a3b8'}}>Protected</span>
                       ) : u.status === 'active' ? (
                         <button style={adminStyles.button} onClick={(e) => { e.stopPropagation(); block(u.id); }}>Block</button>
                       ) : (
@@ -757,7 +757,7 @@ export default function AdminPage() {
                 userDetails.registrations.map((reg) => (
                   <div key={reg.id} style={adminStyles.teamCard}>
                     <div><strong>{reg.hackathon_name}</strong></div>
-                    <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
+                    <div style={{fontSize: '1.1rem', color: '#94a3b8'}}>
                       Status: <span style={{color: getStatusColor(reg.status).color}}>{reg.status}</span>
                     </div>
                   </div>
@@ -776,7 +776,7 @@ export default function AdminPage() {
                     <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
                       <div>
                         <div><strong>{team.team_name}</strong></div>
-                        <div style={{fontSize: '0.85rem', color: '#94a3b8'}}>
+                        <div style={{fontSize: '1.1rem', color: '#94a3b8'}}>
                           {team.hackathon_name} • Role: {team.role}
                         </div>
                       </div>

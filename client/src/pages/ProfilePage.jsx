@@ -269,7 +269,7 @@ export default function ProfilePage() {
       {/* Password Change */}
       <div className="card">
         <h3>Change Password</h3>
-        <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.9rem' }}>
+        <p style={{ color: 'var(--color-text-secondary)', fontSize: '1.1rem' }}>
           {user.password_hash ? 'Update your password' : 'Set a password for email/password login (OAuth users)'}
         </p>
         <form onSubmit={updatePassword}>
