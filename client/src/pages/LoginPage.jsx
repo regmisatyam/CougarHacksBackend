@@ -81,16 +81,16 @@ export default function LoginPage() {
             marginTop: '1rem',
             flexDirection: 'column'
           }}>
-            <button 
+            {/* <button 
               type="button"
-              onClick={() => neonAuth.signIn.social({ provider: 'google', callbackURL: '/dashboard' })}
+              onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/auth/google/start`}
               style={{ background: 'var(--color-bg-secondary)' }}
             >
               Continue with Google
-            </button>
+            </button> */}
             <button 
               type="button"
-              onClick={() => neonAuth.signIn.social({ provider: 'github', callbackURL: '/dashboard' })}
+              onClick={() => window.location.href = `${import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000'}/auth/github/start`}
               style={{ background: 'var(--color-bg-secondary)' }}
             >
               Continue with GitHub

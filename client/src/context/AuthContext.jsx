@@ -15,11 +15,28 @@ export function AuthProvider({ children }) {
     (async () => {
       try {
         const url = new URL(window.location.href);
+        
+        // Skip auth bootstrap on password reset pages only
+        const skipPages = ['/forgot-password', '/reset-password'];
+        if (skipPages.includes(window.location.pathname)) {
+          if (mounted) setLoading(false);
+          return;
+        }
+        
+        // Check for OAuth success redirect
+        const oauthSuccess = url.searchParams.get('oauth');
+        if (oauthSuccess === 'success') {
+          sessionStorage.setItem('local_session_hint', '1');
+          url.searchParams.delete('oauth');
+          window.history.replaceState({}, '', url.toString());
+        }
+        
         const verifier = url.searchParams.get('neon_auth_session_verifier');
         const verifierHandled = sessionStorage.getItem('neon_verifier_handled');
         console.debug('[AUTH] bootstrap', {
           verifier: verifier || null,
           verifierHandled,
+          oauthSuccess,
           localSessionHint: sessionStorage.getItem('local_session_hint'),
           hasNeonToken: Boolean(readSessionToken()),
         });

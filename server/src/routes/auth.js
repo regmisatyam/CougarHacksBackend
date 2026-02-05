@@ -4,7 +4,7 @@ import { env } from '../config/env.js';
 import { sql } from '../db.js';
 import { requireAuth } from '../middleware/auth.js';
 import { createSession, destroySession, buildSessionCookieOptions } from '../utils/session.js';
-import { normalizeEmail } from '../utils/oauth.js';
+import { normalizeEmail, randomState, oauthCookieOptions, clearOauthCookieOptions, google, github } from '../utils/oauth.js';
 import { getNeonSessionByVerifier } from '../utils/neonAuth.js';
 
 export const authRouter = express.Router();
@@ -41,6 +41,36 @@ async function upsertLocalUserFromNeon({ email, subject = null, fullName = '' })
   const rows = await sql`
     INSERT INTO users (email, password_hash, role, status, auth_subject)
     VALUES (${normalizedEmail}, NULL, 'participant', 'active', ${subject})
+    ON CONFLICT (email) DO UPDATE SET
+      auth_subject = COALESCE(users.auth_subject, EXCLUDED.auth_subject),
+      updated_at = NOW()
+    RETURNING id, email, role, status, blocked_reason
+  `;
+  const user = rows[0] || null;
+  if (!user) return null;
+
+  await sql`
+    INSERT INTO user_profiles (user_id, first_name, last_name)
+    VALUES (${user.id}, ${firstName}, ${lastName})
+    ON CONFLICT (user_id) DO UPDATE SET
+      first_name = COALESCE(user_profiles.first_name, EXCLUDED.first_name),
+      last_name = COALESCE(user_profiles.last_name, EXCLUDED.last_name),
+      updated_at = NOW()
+  `;
+
+  return user;
+}
+
+async function upsertLocalUserFromOAuth({ email, fullName = '', provider, providerId }) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) return null;
+
+  const { firstName, lastName } = splitName(fullName);
+  const authSubject = `${provider}:${providerId}`;
+
+  const rows = await sql`
+    INSERT INTO users (email, password_hash, role, status, auth_subject)
+    VALUES (${normalizedEmail}, NULL, 'participant', 'active', ${authSubject})
     ON CONFLICT (email) DO UPDATE SET
       auth_subject = COALESCE(users.auth_subject, EXCLUDED.auth_subject),
       updated_at = NOW()
@@ -403,24 +433,219 @@ authRouter.post('/set-password', requireAuth, async (req, res, next) => {
   }
 });
 
+// Google OAuth
 authRouter.get('/google/start', (req, res) => {
-  const url = new URL(`${neonAuthBase()}/sign-in/social`);
-  url.searchParams.set('provider', 'google');
-  url.searchParams.set('callbackURL', `${env.frontendUrl}/dashboard`);
+  if (!google) {
+    return res.status(500).json({ error: 'Google OAuth not configured' });
+  }
+
+  const state = randomState();
+  const url = google.createAuthorizationURL(state, ['openid', 'profile', 'email']);
+  
+  res.cookie('google_oauth_state', state, oauthCookieOptions());
   return res.redirect(url.toString());
 });
 
 authRouter.get('/google/callback', async (req, res, next) => {
-  return res.redirect(`${env.frontendUrl}/dashboard`);
+  try {
+    if (!google) {
+      return res.redirect(`${env.frontendUrl}/login?error=oauth_not_configured`);
+    }
+
+    const { code, state } = req.query;
+    const storedState = req.cookies.google_oauth_state;
+
+    if (!code || !state || !storedState || state !== storedState) {
+      return res.redirect(`${env.frontendUrl}/login?error=invalid_state`);
+    }
+
+    res.clearCookie('google_oauth_state', clearOauthCookieOptions());
+
+    // Exchange code for tokens
+    const tokens = await google.validateAuthorizationCode(code);
+    
+    // Fetch user info from Google
+    const userInfoResp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+      headers: { Authorization: `Bearer ${tokens.accessToken()}` },
+    });
+
+    if (!userInfoResp.ok) {
+      throw new Error('Failed to fetch Google user info');
+    }
+
+    const googleUser = await userInfoResp.json();
+    const email = normalizeEmail(googleUser.email);
+    const name = googleUser.name || '';
+
+    if (!email) {
+      return res.redirect(`${env.frontendUrl}/login?error=no_email`);
+    }
+
+    // Upsert user in database
+    const localUser = await upsertLocalUserFromOAuth({
+      email,
+      fullName: name,
+      provider: 'google',
+      providerId: googleUser.id,
+    });
+
+    if (!localUser) {
+      return res.redirect(`${env.frontendUrl}/login?error=user_sync_failed`);
+    }
+
+    if (localUser.status === 'blocked') {
+      return res.redirect(`${env.frontendUrl}/login?error=account_blocked`);
+    }
+
+    // Create session
+    const { token, expiresAt } = await createSession(localUser.id);
+    setSessionCookie(res, token, expiresAt);
+
+    // Check if profile is complete
+    const profileRows = await sql`
+      SELECT first_name, last_name, phone, dob, gender, university, major, 
+             graduation_year, dietary_restrictions, github_url
+      FROM user_profiles
+      WHERE user_id = ${localUser.id}
+      LIMIT 1
+    `;
+    const p = profileRows[0] || {};
+    const profileComplete = Boolean(
+      p.first_name &&
+      p.last_name &&
+      p.phone &&
+      p.dob &&
+      p.gender &&
+      p.university &&
+      p.major &&
+      p.graduation_year &&
+      p.dietary_restrictions &&
+      p.github_url
+    );
+
+    const redirectTo = profileComplete ? '/dashboard' : '/complete-profile';
+    return res.redirect(`${env.frontendUrl}${redirectTo}?oauth=success`);
+  } catch (err) {
+    console.error('[AUTH] Google OAuth error:', err);
+    return res.redirect(`${env.frontendUrl}/login?error=oauth_failed`);
+  }
 });
 
+// GitHub OAuth
 authRouter.get('/github/start', (req, res) => {
-  const url = new URL(`${neonAuthBase()}/sign-in/social`);
-  url.searchParams.set('provider', 'github');
-  url.searchParams.set('callbackURL', `${env.frontendUrl}/dashboard`);
+  if (!github) {
+    return res.status(500).json({ error: 'GitHub OAuth not configured' });
+  }
+
+  const state = randomState();
+  const url = github.createAuthorizationURL(state, ['user:email']);
+  
+  res.cookie('github_oauth_state', state, oauthCookieOptions());
   return res.redirect(url.toString());
 });
 
 authRouter.get('/github/callback', async (req, res, next) => {
-  return res.redirect(`${env.frontendUrl}/dashboard`);
+  try {
+    if (!github) {
+      return res.redirect(`${env.frontendUrl}/login?error=oauth_not_configured`);
+    }
+
+    const { code, state } = req.query;
+    const storedState = req.cookies.github_oauth_state;
+
+    if (!code || !state || !storedState || state !== storedState) {
+      return res.redirect(`${env.frontendUrl}/login?error=invalid_state`);
+    }
+
+    res.clearCookie('github_oauth_state', clearOauthCookieOptions());
+
+    // Exchange code for tokens
+    const tokens = await github.validateAuthorizationCode(code);
+    
+    // Fetch user info from GitHub
+    const userInfoResp = await fetch('https://api.github.com/user', {
+      headers: { 
+        Authorization: `Bearer ${tokens.accessToken()}`,
+        'User-Agent': 'CougarHacks',
+      },
+    });
+
+    if (!userInfoResp.ok) {
+      throw new Error('Failed to fetch GitHub user info');
+    }
+
+    const githubUser = await userInfoResp.json();
+    
+    // GitHub email might be private, fetch from emails endpoint
+    let email = githubUser.email;
+    if (!email) {
+      const emailsResp = await fetch('https://api.github.com/user/emails', {
+        headers: {
+          Authorization: `Bearer ${tokens.accessToken()}`,
+          'User-Agent': 'CougarHacks',
+        },
+      });
+
+      if (emailsResp.ok) {
+        const emails = await emailsResp.json();
+        const primaryEmail = emails.find(e => e.primary && e.verified);
+        email = primaryEmail?.email || emails[0]?.email;
+      }
+    }
+
+    email = normalizeEmail(email);
+    const name = githubUser.name || githubUser.login || '';
+
+    if (!email) {
+      return res.redirect(`${env.frontendUrl}/login?error=no_email`);
+    }
+
+    // Upsert user in database
+    const localUser = await upsertLocalUserFromOAuth({
+      email,
+      fullName: name,
+      provider: 'github',
+      providerId: String(githubUser.id),
+    });
+
+    if (!localUser) {
+      return res.redirect(`${env.frontendUrl}/login?error=user_sync_failed`);
+    }
+
+    if (localUser.status === 'blocked') {
+      return res.redirect(`${env.frontendUrl}/login?error=account_blocked`);
+    }
+
+    // Create session
+    const { token, expiresAt } = await createSession(localUser.id);
+    setSessionCookie(res, token, expiresAt);
+
+    // Check if profile is complete
+    const profileRows = await sql`
+      SELECT first_name, last_name, phone, dob, gender, university, major, 
+             graduation_year, dietary_restrictions, github_url
+      FROM user_profiles
+      WHERE user_id = ${localUser.id}
+      LIMIT 1
+    `;
+    const p = profileRows[0] || {};
+    const profileComplete = Boolean(
+      p.first_name &&
+      p.last_name &&
+      p.phone &&
+      p.dob &&
+      p.gender &&
+      p.university &&
+      p.major &&
+      p.graduation_year &&
+      p.dietary_restrictions &&
+      p.github_url
+    );
+
+    const redirectTo = profileComplete ? '/dashboard' : '/complete-profile';
+    return res.redirect(`${env.frontendUrl}${redirectTo}?oauth=success`);
+  } catch (err) {
+    console.error('[AUTH] GitHub OAuth error:', err);
+    return res.redirect(`${env.frontendUrl}/login?error=oauth_failed`);
+  }
 });
