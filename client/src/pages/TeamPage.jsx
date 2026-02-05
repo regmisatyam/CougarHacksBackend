@@ -219,15 +219,15 @@ export default function TeamPage() {
       alignItems: 'center',
       justifyContent: 'center',
       marginTop: '1rem',
-      fontSize: '0.85rem',
+      fontSize: '0.95rem',
     },
     button: {
       padding: '0.4rem 0.8rem',
-      fontSize: '0.8rem',
+      fontSize: '0.9rem',
       background: 'rgba(148, 163, 184, 0.3)',
       color: '#fff',
       border: '1px solid rgba(148, 163, 184, 0.4)',
-      borderRadius: '0.25rem',
+      borderRadius: '50px',
       cursor: 'pointer',
       fontWeight: '500',
     },
@@ -254,11 +254,11 @@ export default function TeamPage() {
       {user?.role === 'organizer' && hackathonId && (
         <div className="card" style={{ 
           marginTop: '1rem', 
-          backgroundColor: 'rgba(2, 8, 87, 0.1)', 
-          border: '2px solid rgba(0, 17, 255, 0.3)' 
+          backgroundColor: 'rgba(59, 130, 246, 0.1)', 
+          border: '2px solid rgba(59, 130, 246, 0.3)' 
         }}>
           <h3 style={{ color: '#fff' }}>Organizer View - All Teams</h3>
-          <p style={{ fontSize: '0.9rem', color: '#94a3b8' }}>
+          <p style={{ fontSize: '1rem', color: '#94a3b8' }}>
             View and manage all teams for this hackathon. Click on any team to see details.
           </p>
           
@@ -270,7 +270,7 @@ export default function TeamPage() {
             style={{ marginBottom: '1rem' }}
           />
           
-          <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
+          <p style={{ fontSize: '0.95rem', color: '#94a3b8', marginBottom: '0.5rem' }}>
             Showing {teamStartIndex + 1}-{Math.min(teamEndIndex, filteredTeams.length)} of {filteredTeams.length} teams
             {filteredTeams.length !== allTeams.length && ` (filtered from ${allTeams.length})`}
           </p>
@@ -286,7 +286,7 @@ export default function TeamPage() {
                   style={{ 
                     padding: '0.75rem', 
                     border: '1px solid rgba(148, 163, 184, 0.3)',
-                    borderRadius: '4px',
+                    borderRadius: '50px',
                     marginBottom: '0.5rem',
                     cursor: 'pointer',
                     transition: 'background 0.2s',
@@ -302,24 +302,24 @@ export default function TeamPage() {
                         <strong style={{ fontSize: '1rem', color: '#fff' }}>{team.name}</strong>
                         {team.is_public && (
                           <span style={{ 
-                            fontSize: '0.7rem', 
+                            fontSize: '0.85rem', 
                             backgroundColor: '#10b981', 
                             color: 'white',
                             padding: '2px 6px',
-                            borderRadius: '3px',
+                            borderRadius: '50px',
                             fontWeight: 'bold'
                           }}>
                             🌐 PUBLIC
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                      <div style={{ fontSize: '0.95rem', color: '#94a3b8', marginTop: '0.25rem' }}>
                         Created by: {team.creator_email} • Members: {team.member_count}/{team.max_team_size}
                       </div>
                     </div>
                     <div>
                       <span style={{ 
-                        fontSize: '0.75rem', 
+                        fontSize: '0.85rem', 
                         color: '#60a5fa',
                         fontWeight: '500'
                       }}>
@@ -385,8 +385,8 @@ export default function TeamPage() {
       {!teamData.team ? (
         <>
           {isAccepted && (
-            <div className="card" style={{ marginTop: '1rem', backgroundColor: '#f0f9ff', border: '1px solid #0369a1' }}>
-              <p style={{ margin: 0, color: '#0369a1' }}>
+            <div className="card" style={{ marginTop: '1rem', backgroundColor: 'rgba(59, 130, 246, 0.1)', border: '1px solid rgba(59, 130, 246, 0.3)' }}>
+              <p style={{ margin: 0, color: '#60a5fa' }}>
                 You can create a team (as team leader) or join an existing team. Teams can have up to {maxTeamSize} members. 
                 You can also skip this for now and join a team later.
               </p>
@@ -412,7 +412,7 @@ export default function TeamPage() {
               <span>🌐 Make team public (anyone can join)</span>
             </label>
             {createPublic && (
-              <p style={{ color: '#0369a1', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+              <p style={{ color: '#0369a1', fontSize: '1rem', marginTop: '0.5rem' }}>
                 Public teams appear in the browse list and can be joined by anyone without a code.
               </p>
             )}
@@ -422,7 +422,7 @@ export default function TeamPage() {
             >
               Create Team
             </button>
-            {!isAccepted && <p style={{ color: '#dc2626', fontSize: '0.9rem' }}>You must be accepted to create a team.</p>}
+            {!isAccepted && <p style={{ color: '#dc2626', fontSize: '1rem' }}>You must be accepted to create a team.</p>}
           </div>
 
           <div className="card">
@@ -440,12 +440,12 @@ export default function TeamPage() {
             >
               Join Team
             </button>
-            {!isAccepted && <p style={{ color: '#dc2626', fontSize: '0.9rem' }}>You must be accepted to join a team.</p>}
+            {!isAccepted && <p style={{ color: '#dc2626', fontSize: '1rem' }}>You must be accepted to join a team.</p>}
           </div>
 
           <div className="card">
             <h3>Browse Public Teams</h3>
-            <p style={{ fontSize: '0.9rem', color: '#6b7280', margin: '0.5rem 0' }}>
+            <p style={{ fontSize: '1rem', color: '#6b7280', margin: '0.5rem 0' }}>
               Public teams are open for anyone to join. Private teams require a code.
             </p>
             <button onClick={() => {
@@ -464,7 +464,7 @@ export default function TeamPage() {
                       <div key={team.id} style={{ 
                         padding: '0.75rem', 
                         border: team.is_public ? '2px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(255, 255, 255, 0.2)',
-                        borderRadius: '4px',
+                        borderRadius: '50px',
                         marginBottom: '0.5rem',
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -475,17 +475,17 @@ export default function TeamPage() {
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <strong>{team.name}</strong>
                             <span style={{ 
-                              fontSize: '0.75rem', 
+                              fontSize: '0.85rem', 
                               backgroundColor: '#10b981', 
                               color: 'white',
                               padding: '2px 6px',
-                              borderRadius: '3px',
+                              borderRadius: '50px',
                               fontWeight: 'bold'
                             }}>
                               🌐 PUBLIC
                             </span>
                           </div>
-                          <p style={{ margin: '0.25rem 0', fontSize: '0.9rem', color: '#6b7280' }}>
+                          <p style={{ margin: '0.25rem 0', fontSize: '1rem', color: '#6b7280' }}>
                             Members: {team.member_count}/{maxTeamSize}
                           </p>
                         </div>
@@ -522,7 +522,7 @@ export default function TeamPage() {
               Team Code: <code style={{ 
                   backgroundColor: 'rgba(255, 255, 255, 0.1)', 
                 padding: '4px 8px', 
-                borderRadius: '4px',
+                borderRadius: '50px',
                 fontSize: '1rem',
                 fontWeight: 'bold'
               }}>{teamData.team.team_code}</code>
@@ -531,10 +531,10 @@ export default function TeamPage() {
               margin: '0.75rem 0',
               padding: '0.5rem',
               backgroundColor: teamData.team.is_public ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-              borderRadius: '4px',
+              borderRadius: '50px',
               border: `1px solid ${teamData.team.is_public ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)'}`
             }}>
-              <p style={{ margin: 0, fontSize: '0.9rem' }}>
+              <p style={{ margin: 0, fontSize: '1rem' }}>
                 {teamData.team.is_public ? (
                   <>🌐 <strong>Public Team:</strong> Anyone can join without a code</>
                 ) : (
@@ -549,7 +549,7 @@ export default function TeamPage() {
                   style={{ 
                     backgroundColor: teamData.team.is_public ? '#f59e0b' : '#10b981',
                     color: 'white',
-                    fontSize: '0.9rem'
+                    fontSize: '1rem'
                   }}
                 >
                   {teamData.team.is_public ? 'Make Private' : 'Make Public'}
@@ -625,7 +625,7 @@ export default function TeamPage() {
               </button>
               
               {teamData.members.length >= maxTeamSize && (
-                <p style={{ color: '#dc2626', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                <p style={{ color: '#dc2626', fontSize: '1rem', marginTop: '0.5rem' }}>
                   Team is full ({maxTeamSize}/{maxTeamSize} members).
                 </p>
               )}
@@ -681,7 +681,7 @@ export default function TeamPage() {
               background: 'rgba(30, 41, 59, 0.95)',
               backdropFilter: 'blur(10px)',
               border: '1px solid rgba(148, 163, 184, 0.3)',
-              borderRadius: '0.75rem',
+              borderRadius: '50px',
               padding: '1.5rem',
               maxWidth: '600px',
               width: '100%',
@@ -727,7 +727,7 @@ export default function TeamPage() {
                 display: 'grid',
                 gridTemplateColumns: '120px 1fr',
                 gap: '0.5rem',
-                fontSize: '0.9rem',
+                fontSize: '1rem',
               }}>
                 <span style={{ color: '#94a3b8', fontWeight: '500' }}>Name:</span>
                 <span style={{ color: '#fff', fontWeight: '600' }}>{selectedTeamDetails.team.name}</span>
@@ -736,7 +736,7 @@ export default function TeamPage() {
                 <code style={{
                   backgroundColor: 'rgba(148, 163, 184, 0.2)',
                   padding: '2px 6px',
-                  borderRadius: '4px',
+                  borderRadius: '50px',
                   fontWeight: 'bold',
                   color: '#60a5fa',
                 }}>
@@ -771,7 +771,7 @@ export default function TeamPage() {
                 Team Members ({selectedTeamDetails.members.length}/{selectedTeamDetails.team.max_team_size})
               </h4>
               {selectedTeamDetails.members.length === 0 ? (
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>No members yet</p>
+                <p style={{ color: '#94a3b8', fontSize: '1rem' }}>No members yet</p>
               ) : (
                 <div>
                   {selectedTeamDetails.members.map((member) => (
@@ -780,7 +780,7 @@ export default function TeamPage() {
                       style={{
                         background: 'rgba(148, 163, 184, 0.1)',
                         border: '1px solid rgba(148, 163, 184, 0.2)',
-                        borderRadius: '0.375rem',
+                        borderRadius: '50px',
                         padding: '0.75rem',
                         marginBottom: '0.5rem',
                       }}
@@ -792,11 +792,11 @@ export default function TeamPage() {
                               ? `${member.first_name} ${member.last_name}`
                               : member.email}
                           </div>
-                          <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                          <div style={{ fontSize: '0.95rem', color: '#94a3b8' }}>
                             {member.email}
                           </div>
                           {(member.university || member.major) && (
-                            <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.25rem' }}>
+                            <div style={{ fontSize: '0.9rem', color: '#94a3b8', marginTop: '0.25rem' }}>
                               {member.university && <span>{member.university}</span>}
                               {member.university && member.major && <span> • </span>}
                               {member.major && <span>{member.major}</span>}
@@ -805,11 +805,11 @@ export default function TeamPage() {
                         </div>
                         <div>
                           <span style={{
-                            fontSize: '0.75rem',
+                            fontSize: '0.85rem',
                             fontWeight: '600',
                             color: member.role === 'leader' ? '#60a5fa' : '#94a3b8',
                             padding: '4px 8px',
-                            borderRadius: '4px',
+                            borderRadius: '50px',
                             backgroundColor: member.role === 'leader' 
                               ? 'rgba(96, 165, 250, 0.2)' 
                               : 'rgba(148, 163, 184, 0.2)',
@@ -832,7 +832,7 @@ export default function TeamPage() {
                 backgroundColor: '#ef4444',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '0.5rem',
+                borderRadius: '50px',
                 cursor: 'pointer',
                 fontSize: '1rem',
                 fontWeight: '600',

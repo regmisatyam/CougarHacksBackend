@@ -11,6 +11,7 @@ import CompleteProfilePage from './pages/CompleteProfilePage';
 import ProfilePage from './pages/ProfilePage';
 import { api } from './api/http';
 import { neonAuth } from './lib/neonAuth';
+import logo from './assets/logo.png';
 
 // Home redirect component
 function Home() {
@@ -69,7 +70,7 @@ function Nav() {
 
   useLayoutEffect(() => {
     const onResize = () => {
-      if (window.innerWidth >= 600) setIsOpen(false);
+      if (window.innerWidth >= 950) setIsOpen(false);
       if (pill.opacity === 1 && activeIndex >= 0) measureTo(activeIndex, true);
     };
     window.addEventListener('resize', onResize);
@@ -99,7 +100,7 @@ function Nav() {
       <div className="navbarInner">
         {/* Logo */}
         <Link to={user ? "/dashboard" : "/login"} className="navLogo">
-          🐾 CougarHacks
+          <img src={logo} alt="CougarHacks Logo" style={{ height: '200px', width: '200px' }} />
         </Link>
 
         {/* Mobile hamburger */}
