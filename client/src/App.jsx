@@ -99,9 +99,9 @@ function Nav() {
     <nav className="navbar">
       <div className="navbarInner">
         {/* Logo */}
-        <Link to={user ? "/dashboard" : "/login"} className="navLogo">
-          <img src={logo} alt="CougarHacks Logo" style={{ height: '200px', width: '200px' }} />
-        </Link>
+        <a href="https://cougarhacks.com" className="navLogo">
+          <img src={logo} alt="CougarHacks Logo" className="logoImg" />
+        </a>
 
         {/* Mobile hamburger */}
         <button

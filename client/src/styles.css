@@ -187,16 +187,19 @@ a:hover {
   position: absolute;
   left: 30px;
   top: 50%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) !important;
   display: flex;
   align-items: center;
   text-decoration: none;
-  transition: transform 180ms ease;
   pointer-events: auto;
+  transition: none !important;
 }
 
-.navLogo:hover {
-  transform: translateY(-50%) scale(1.05);
+.logoImg {
+  height: 200px;
+  width: 200px;
+  transition: none !important;
+  transform: none !important;
 }
 
 .navList {
@@ -403,6 +406,17 @@ form {
   display: grid;
   gap: var(--spacing-md);
   max-width: 520px;
+  justify-items: center;
+}
+
+/* Ensure inputs and labels take full width even when form is centered */
+form > *:not(button):not(div) {
+  width: 100%;
+}
+
+form label {
+  text-align: left;
+  width: 100%;
 }
 
 /* Full width form for profile grid */
@@ -651,17 +665,44 @@ p:contains("Loading") {
 
 .submit-button {
   margin-top: 1.5rem;
-  width: 100%;
+  width: fit-content;
+  justify-self: center;
 }
 
 .button-group {
   margin-top: 1.5rem;
   display: flex;
   gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
 }
 
 .button-group .button-primary {
-  flex: 1;
+  flex: 0 1 auto;
+}
+
+/* Center all buttons in forms and cards */
+form button, .card button:not(.navList button):not(.logoutBtn):not(.hamburgerBtn) {
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+/* Fix for buttons that should stay in groups or rows */
+.button-group button, 
+.row button,
+div[style*="display: flex"] button,
+div[style*="display:flex"] button {
+  display: inline-flex;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+form div:has(button) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 }
 
 /* Tablet breakpoint */
@@ -685,26 +726,41 @@ p:contains("Loading") {
     font-size: 14px;
     padding: 9px 16px;
   }
-  .navLogo {
-  }
+  
 }
 
 /* Mobile Navigation */
 @media (max-width: 950px) {
+  .container {
+    padding-top: 160px;
+  }
+
+  .navbar {
+    position: absolute;
+  }
+
   .navbarInner {
     justify-content: flex-start;
   }
 
   .navLogo {
-    position: fixed;
+    position: absolute;
     left: 50%;
-    transform: translateX(-50%);
-    top: 28px;
+    transform: translateX(-50%) !important;
+    top: 10px;
     z-index: 1100;
+    transition: none !important;
+  }
+
+  .logoImg {
+    height: 120px;
+    width: 120px;
+    transition: none !important;
+    transform: none !important;
   }
 
   .logoutBtn {
-    position: fixed;
+    position: absolute;
     right: 18px;
     top: 18px;
     z-index: 1100;
@@ -718,6 +774,7 @@ p:contains("Loading") {
     align-items: center;
     justify-content: center;
     z-index: 1202;
+    position: absolute;
   }
 
   .navList {
@@ -760,7 +817,7 @@ p:contains("Loading") {
 @media (max-width: 768px) {
   .container {
     padding: var(--spacing-sm);
-    padding-top: 100px;
+    padding-top: 160px;
   }
   
   h1 { font-size: 2rem; }
